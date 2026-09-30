@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from uuid import uuid4
 
@@ -28,6 +28,13 @@ def hello():
 @app.get("/transactions")
 def get_transactions():
     return transactions
+
+@app.get("/transactions/{transaction_id}")
+def get_transaction(transaction_id: str):
+    for t in transactions:
+        if t.id == transaction_id:
+            return t
+    raise HTTPException(status_code=404, detail="Transaction not found")
 
 @app.post("/transactions")
 def add_transactions(data: TransactionCreate):
