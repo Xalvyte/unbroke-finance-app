@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from uuid import uuid4
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, Field, ConfigDict
+from database import get_db
+from models import TransactionDB
+from sqlalchemy.orm import Session
 
 #Models
 class TransactionCreate(BaseModel):
@@ -14,9 +16,7 @@ class TransactionUpdate(BaseModel):
     category: str | None = None
 
 class Transaction(TransactionCreate):
-    id: str = Field(default_factory=lambda: uuid4().hex)
-
-transactions = []
+    model_config = ConfigDict(from_attributes=True)
 
 #API
 
@@ -32,9 +32,9 @@ def health():
 def hello():
     return {"Wave": "This is a refresher program by Rhod."}
 
-@app.get("/transactions")
-def get_transactions():
-    return transactions
+@app.get("/transactions", response_model=list[Transaction])
+def get_transactions(db: Session = Depends(get_db)):
+    return db.query(TransactionDB).all()
 
 @app.get("/transactions/{transaction_id}")
 def get_transaction(transaction_id: str):
@@ -45,15 +45,13 @@ def get_transaction(transaction_id: str):
 
 #------------------------ POST --------------------------------------
 
-@app.post("/transactions")
-def add_transaction(data: TransactionCreate):
-    transaction = Transaction(**data.model_dump())
-    transactions.append(transaction)
-    return transaction
-
-@app.post("/transactions/{transaction_id}")
-def edit_transaction(data):
-    print()
+@app.post("/transactions", response_model=Transaction)
+def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
+    row = TransactionDB(**data.model_dump())
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return(row)
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX DELETE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
