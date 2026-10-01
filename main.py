@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from database import get_db
 from models import TransactionDB
 from sqlalchemy.orm import Session
@@ -52,7 +52,7 @@ def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
     db.add(row)
     db.commit()
     db.refresh(row)
-    return(row)
+    return row
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX DELETE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -67,12 +67,19 @@ def delete_transaction(transaction_id: str, db: Session = Depends(get_db)):
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@ Patch @@@@@@@@@@@@@@@@@@@@@
 
-@app.patch("/transactions/{transaction_id}")
-def patch_transaction(transaction_id: str, data: TransactionUpdate):
-    changes = data.model_dump(exclude_unset=True)
-    for t in transactions:
-        if t.id == transaction_id:
-            for field, value in changes.items():
-                setattr(t, field, value)
-            return t 
-    raise HTTPException(status_code=404, detail="Transaction does not exist")
+@app.patch("/transactions/{transaction_id}", response_model=Transaction)
+def patch_transaction(transaction_id: str, data: TransactionUpdate, db: Session = Depends(get_db)):
+    row = db.get(TransactionDB, transaction_id)
+
+    if row is None:
+        raise HTTPException(status_code=404, detail="Transaction does not exist")
+
+    changes = data.model_dump(exclude_unset=True, exclude_none=True)
+    for field, value in changes.items():
+        setattr(row, field, value)
+
+    db.commit()
+    db.refresh(row)
+    return row
+
+
