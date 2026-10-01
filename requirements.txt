@@ -14,7 +14,6 @@ charset-normalizer==3.0.1
 click==8.1.3
 colorama==0.4.6
 colorzero==2.0
-crit==3.17.1
 cryptography==38.0.4
 cupshelpers==1.0
 dbus-python==1.3.2
@@ -24,6 +23,7 @@ dnspython==2.3.0
 docutils==0.19
 evdev==1.6.1
 Flask==2.2.2
+gbinder-python==1.3.1
 ghp-import==2.1.0
 gpg==1.18.0
 gpiozero==2.0.1
@@ -32,6 +32,7 @@ h2==4.1.0
 hpack==4.0.0
 html5lib==1.1
 httpcore==0.16.3
+httplib2==0.20.4
 httpx==0.23.3
 hyperframe==6.0.0
 idna==3.3
@@ -44,6 +45,8 @@ Jinja2==3.1.2
 joblib==1.5.1
 jsonpointer==2.3
 jsonschema==4.10.3
+lazr.restfulclient==0.14.5
+lazr.uri==1.0.6
 lazy-object-proxy==1.9.0
 lgpio==0.2.2.0
 libarchive-c==2.9
@@ -82,7 +85,6 @@ Pillow==9.4.0
 pipx==1.1.0
 platformdirs==2.6.0
 pluggy==1.0.0+repack
-protobuf==4.21.12
 psutil==5.9.4
 ptyprocess==0.7.0
 py==1.11.0
@@ -98,6 +100,7 @@ pylint==2.16.2
 pynput==1.7.5
 PyOpenGL==3.1.6
 pyOpenSSL==23.0.0
+pyparsing==3.0.9
 PyQt5==5.15.9
 PyQt5-sip==12.11.1
 pyrsistent==0.18.1
@@ -280,8 +283,8 @@ ufw==0.36.2
 uritemplate==4.1.1
 urllib3==1.26.12
 userpath==1.8.0
-v4l2-python3==0.3.5
 videodev2==0.0.4
+wadllib==1.3.6
 watchdog==2.2.1
 webcolors==1.11.1
 webencodings==0.5.1

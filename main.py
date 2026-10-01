@@ -17,6 +17,7 @@ class TransactionUpdate(BaseModel):
 
 class Transaction(TransactionCreate):
     model_config = ConfigDict(from_attributes=True)
+    id: str
 
 #API
 
@@ -36,12 +37,12 @@ def hello():
 def get_transactions(db: Session = Depends(get_db)):
     return db.query(TransactionDB).all()
 
-@app.get("/transactions/{transaction_id}")
-def get_transaction(transaction_id: str):
-    for t in transactions:
-        if t.id == transaction_id:
-            return t
-    raise HTTPException(status_code=404, detail="Transaction not found")
+@app.get("/transactions/{transaction_id}", response_model=Transaction)
+def get_transaction(transaction_id: str, db: Session = Depends(get_db)):
+    row = db.get(TransactionDB, transaction_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return row
 
 #------------------------ POST --------------------------------------
 
@@ -56,12 +57,13 @@ def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX DELETE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 @app.delete("/transactions/{transaction_id}")
-def delete_transaction(transaction_id: str):
-    for t in transactions:
-        if t.id == transaction_id:
-            transactions.remove(t)
-            return {"message": "Transaction deleted", "deleted": t}
-    raise HTTPException(status_code=404, detail="Transaction does not exist")
+def delete_transaction(transaction_id: str, db: Session = Depends(get_db)):
+    row = db.get(TransactionDB, transaction_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Transaction does not exist")
+    db.delete(row)
+    db.commit()
+    return {"message": "Transaction deleted", "id": transaction_id}
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@ Patch @@@@@@@@@@@@@@@@@@@@@
 
