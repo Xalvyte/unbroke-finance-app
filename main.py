@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, ConfigDict
 from database import get_db
-from models import TransactionDB
+from models import TransactionDB, UserDB
 from sqlalchemy.orm import Session
+from security import hash_password
 
 #Models
 class TransactionCreate(BaseModel):
@@ -18,6 +19,15 @@ class TransactionUpdate(BaseModel):
 class Transaction(TransactionCreate):
     model_config = ConfigDict(from_attributes=True)
     id: str
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    email: str
 
 #API
 
@@ -53,6 +63,18 @@ def add_transaction(data: TransactionCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(row)
     return row
+
+@app.post("/register", response_model=UserOut, status_code=201)
+def register(data: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(UserDB).filter(UserDB.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    user = UserDB(email=data.email, hashed_password=hash_password(data.password))
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
 #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX DELETE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
